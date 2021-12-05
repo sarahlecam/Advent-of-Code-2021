@@ -8,26 +8,51 @@ data class Point(val x: Int, val y: Int) {
     override fun toString() = "($x,$y)"
 }
 
-data class Line(val start: Point, val end: Point) {
-    val points = findPoints()
+sealed class Line(open val start: Point, open val end: Point) {
+    companion object {
+        fun createLine(start: Point, end: Point): Line {
+            return if (start.x == end.x)
+                VerticalLine(start, end)
+            else if (start.y == end.y)
+                HorizontalLine(start, end)
+            else
+                DiagonalLine(start, end)
+        }
+    }
 
-    fun isHorizontal() = start.x != end.x && start.y != end.y
+    abstract fun findPoints(): Set<Point>
+    override fun toString() = "(${start.x},${start.y}) - (${end.x},${end.y})"
 
-    private fun findPoints(): Set<Point> {
-        val points = mutableSetOf<Point>()
+    class VerticalLine(override val start: Point, override val end: Point) : Line(start, end) {
+        override fun findPoints(): Set<Point> {
+            val points = mutableSetOf<Point>()
 
-        if (start.x == end.x) {
             for (y in start.y toward end.y) {
                 points.add(Point(start.x, y))
             }
-        } else if (start.y == end.y) {
+
+            return points
+        }
+    }
+
+    class HorizontalLine(override val start: Point, override val end: Point) : Line(start, end) {
+        override fun findPoints(): Set<Point> {
+            val points = mutableSetOf<Point>()
+
             for (x in start.x toward end.x) {
                 points.add(Point(x, start.y))
             }
-        } else {
+
+            return points
+        }
+    }
+
+    class DiagonalLine(override val start: Point, override val end: Point) : Line(start, end) {
+        override fun findPoints(): Set<Point> {
+            val points = mutableSetOf<Point>()
+
             val xDir = if (start.x < end.x) 1 else -1
             val yDir = if (start.y < end.y) 1 else -1
-
             val difference = abs(end.x - start.x)
 
             for (i in 0..difference) {
@@ -35,12 +60,10 @@ data class Line(val start: Point, val end: Point) {
                 val y = if (yDir == 1) start.y + i else start.y - i
                 points.add(Point(x, y))
             }
+
+            return points
         }
-
-        return points
     }
-
-    override fun toString() = "(${start.x},${start.y}) - (${end.x},${end.y})"
 }
 
 private infix fun Int.toward(to: Int): IntProgression {
@@ -53,8 +76,8 @@ fun part1(input: List<String>): Int {
     val hits = mutableMapOf<Point, Int>()
 
     lines.forEach { line ->
-        if (!line.isHorizontal()) {
-            line.points.forEach { point ->
+        if (line !is Line.DiagonalLine) {
+            line.findPoints().forEach { point ->
                 hits[point] = (hits[point] ?: 0) + 1
             }
         }
@@ -76,7 +99,7 @@ private fun getLines(input: List<String>): List<Line> {
                     Point(pointCords.first(), pointCords.last())
                 }
 
-            Line(lineLimits.first(), lineLimits.last())
+            Line.createLine(lineLimits.first(), lineLimits.last())
         }
 }
 
@@ -85,7 +108,7 @@ fun part2(input: List<String>): Int {
     val hits = mutableMapOf<Point, Int>()
 
     lines.forEach { line ->
-        line.points.forEach { point ->
+        line.findPoints().forEach { point ->
             hits[point] = (hits[point] ?: 0) + 1
         }
     }
