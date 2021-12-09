@@ -8,7 +8,7 @@ fun part1(input: List<String>): Int {
     val positions = extractPositions(input)
     val score = { pos: Int, i: Int -> abs(pos - i) }
 
-    return findBestScore(positions, score)
+    return findBestFuelScore(positions, score)
 }
 
 fun part2(input: List<String>): Int {
@@ -18,12 +18,12 @@ fun part2(input: List<String>): Int {
         (dif * (dif + 1)) / 2
     }
 
-    return findBestScore(positions, computeFuelCost)
+    return findBestFuelScore(positions, computeFuelCost)
 }
 
 private fun extractPositions(input: List<String>): List<Int> = input.first().split(",").map { it.toInt() }
 
-private fun findBestScore(positions: List<Int>, computeFuelCost: (Int, Int) -> Int): Int {
+private fun findBestFuelScore(positions: List<Int>, computeFuelCost: (Int, Int) -> Int): Int {
     val max = positions.maxOrNull()!!
     val min = positions.minOrNull()!!
 
